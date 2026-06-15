@@ -18,6 +18,9 @@ const CLAVE_LOCALSTORAGE = 'tareas';
 const formularioTareas = document.querySelector('.formularioTareas');
 const entradaTarea = document.getElementById('entradaTarea');
 const listaTareas = document.querySelector('.listaTareas');
+const mensajeEntradaError = document.getElementById('mensajeEntradaError');
+const mensajeExito = document.getElementById('mensajeExito');
+const mensajeEliminado = document.getElementById('mensajeEliminado');
 
 let tareas = JSON.parse(localStorage.getItem(CLAVE_LOCALSTORAGE)) || [
     {
@@ -68,8 +71,16 @@ formularioTareas.addEventListener('submit', (e) => {
 
     const textoTarea = entradaTarea.value.trim();
 
-    if (textoTarea !== '') {
-        const nuevaTarea = {
+    if (textoTarea === '') {
+        mensajeEntradaError.textContent = '❗ Tenés que escribir una tarea antes de agregarla';
+        mensajeExito.textContent = '';
+        entradaTarea.focus();
+        return; 
+    }
+
+    mensajeEntradaError.textContent = '';
+
+    const nuevaTarea = {
             texto: textoTarea,
             completada: false
         };
@@ -79,7 +90,11 @@ formularioTareas.addEventListener('submit', (e) => {
         mostrarTareas();
         entradaTarea.value = '';
         entradaTarea.focus();
-    }
+        
+        mensajeExito.textContent = '✅ Tarea agregada con éxito';
+        setTimeout(() => {
+        mensajeExito.textContent = '';
+        }, 5000);
 });
 
 // Para completar y eliminar
@@ -102,6 +117,11 @@ listaTareas.addEventListener('click', (e) => {
         tareas.splice(index, 1);
         guardarTareas();
         mostrarTareas();
+
+        mensajeEliminado.textContent = '🗑️ Tarea eliminada.';
+        setTimeout(() => {
+            mensajeEliminado.textContent = '';
+        }, 5000);
     }
 });
 

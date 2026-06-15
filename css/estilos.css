@@ -112,6 +112,57 @@ h1 {
     box-shadow: 2px 2px 0 #111;
 }
 
+.mensaje-error {
+    position: relative;
+    z-index: 1;
+    color: #d9381e; 
+    background-color: #fce8e8; 
+    border: 2px solid #d9381e; 
+    border-radius: 10px; 
+    padding: 12px; 
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+.mensaje-error:empty {
+    display: none;
+}
+
+.mensaje-exito {
+    position: relative;
+    z-index: 1;
+    color: #155724; 
+    background-color: #d4edda;
+    border: 2px solid #155724; 
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+.mensaje-exito:empty {
+    display: none;
+}
+
+.mensaje-eliminado {
+    position: relative;
+    z-index: 1;
+    color: #495057;
+    background-color: #e9ecef; 
+    border: 2px solid #ced4da;
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+.mensaje-eliminado:empty {
+    display: none;
+}
+
 .listaTareas {
     position: relative;
     z-index: 1;
@@ -182,6 +233,7 @@ h1 {
     animation: slideIn 0.3s ease-out;
 }
 
+/* ----------------- */
 /* Responsive */
 @media (max-width: 700px) {
     body {
