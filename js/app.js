@@ -56,17 +56,17 @@ function mostrarTareas() {
         `;
 
         article.dataset.index = index;
-        taskList.appendChild(article);
+        listaTareas.appendChild(article);
     });
 }
 
 // Para agregar tareas
-taskForm.addEventListener('submit', (e) => {
+formulario-tareas.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    const taskText = entradaTarea.value.trim();
+    const textoTarea = entradaTarea.value.trim();
 
-    if (taskText !== '') {
+    if (textoTarea !== '') {
         const nuevaTarea = {
             texto: taskText,
             completada: false
@@ -81,7 +81,7 @@ taskForm.addEventListener('submit', (e) => {
 });
 
 // Para completar y eliminar
-taskList.addEventListener('click', (e) => {
+listaTareas.addEventListener('click', (e) => {
     const item = e.target.closest('.item-tarea');
 
     if (!item) {
