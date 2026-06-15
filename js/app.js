@@ -21,6 +21,7 @@ const listaTareas = document.querySelector('.listaTareas');
 const mensajeEntradaError = document.getElementById('mensajeEntradaError');
 const mensajeExito = document.getElementById('mensajeExito');
 const mensajeEliminado = document.getElementById('mensajeEliminado');
+const mensajeCompletado = document.getElementById('mensajeCompletado');
 
 let tareas = JSON.parse(localStorage.getItem(CLAVE_LOCALSTORAGE)) || [
     {
@@ -124,6 +125,13 @@ listaTareas.addEventListener('click', (e) => {
         tareas[index].completada = !tareas[index].completada;
         guardarTareas();
         mostrarTareas(tareas);
+
+        if (tareas[index].completada === true) {
+            mensajeCompletado.textContent = '⭐ ¡Felicitaciones! Tarea completada';
+            setTimeout(() => {
+                mensajeCompletado.textContent = '';
+            }, 5000);
+        }
     }
 
     if (e.target.classList.contains('boton-eliminar')) {
