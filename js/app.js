@@ -12,12 +12,14 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+const CLAVE_LOCALSTORAGE = 'tareas';
+
 // Manejo del DOM
 const formularioTareas = document.querySelector('.formularioTareas');
 const entradaTarea = document.getElementById('entradaTarea');
 const listaTareas = document.querySelector('.listaTareas');
 
-let tareas = JSON.parse(localStorage.getItem('tareas')) || [
+let tareas = JSON.parse(localStorage.getItem(CLAVE_LOCALSTORAGE)) || [
     {
         texto: 'Agregá una nueva tarea',
         completada: false
@@ -33,7 +35,7 @@ let tareas = JSON.parse(localStorage.getItem('tareas')) || [
 ];
 
 function guardarTareas() {
-    localStorage.setItem('tareas', JSON.stringify(tareas));
+    localStorage.setItem(CLAVE_LOCALSTORAGE, JSON.stringify(tareas));
 }
 
 function mostrarTareas() {
@@ -68,7 +70,7 @@ formularioTareas.addEventListener('submit', (e) => {
 
     if (textoTarea !== '') {
         const nuevaTarea = {
-            texto: taskText,
+            texto: textoTarea,
             completada: false
         };
 
