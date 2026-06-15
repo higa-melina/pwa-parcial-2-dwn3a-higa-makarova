@@ -1,7 +1,7 @@
 'use strict';
 
-const PRECACHE_NOMBRE = 'tareas-pre-cache-v1';
-const CACHE_DINAMICO_NOMBRE = 'tareas-cache-dinamico-v1';
+const PRECACHE_NOMBRE = 'tareas-pre-cache-v2';
+const CACHE_DINAMICO_NOMBRE = 'tareas-cache-dinamico-v2';
 
 const PRECACHE_URLS = [
     './',
@@ -9,6 +9,17 @@ const PRECACHE_URLS = [
     './css/estilos.css',
     './js/app.js',
     './manifest.json',
+    './img/favicon.png',
+    './img/icon-48x48.png',
+    './img/icon-72x72.png',
+    './img/icon-96x96.png',
+    './img/icon-128x128.png',
+    './img/icon-144x144.png',
+    './img/icon-152x152.png',
+    './img/icon-192x192.png',
+    './img/icon-256x256.png',
+    './img/icon-384x384.png',
+    './img/icon-512x512.png'
 ];
 
 self.addEventListener('install', (evento) => {

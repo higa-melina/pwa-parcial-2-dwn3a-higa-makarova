@@ -2,13 +2,13 @@
 
 // Registro del service worker para habilitar funcionalidades offline y mejorar el rendimiento de la aplicación.
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker
+    navigator.serviceWorker
     .register('./service-worker.js')
     .then((registro) => {
-      console.log('Service worker registrado:', registro);
+        console.log('Service worker registrado:', registro);
     })
     .catch((error) => {
-      console.error(`Registro fallido: ${error}`);
+        console.error(`Registro fallido: ${error}`);
     });
 }
 
@@ -24,14 +24,17 @@ const mensajeEliminado = document.getElementById('mensajeEliminado');
 
 let tareas = JSON.parse(localStorage.getItem(CLAVE_LOCALSTORAGE)) || [
     {
+        id: Date.now(),
         texto: 'Agregá una nueva tarea',
         completada: false
     },
     {
+        id: Date.now() + 1,
         texto: 'Tocá la estrella para marcar la tarea como completada',
         completada: false
     },
     {
+        id: Date.now() + 2,
         texto: 'Tocá la × para eliminar una tarea',
         completada: true
     }
@@ -41,27 +44,33 @@ function guardarTareas() {
     localStorage.setItem(CLAVE_LOCALSTORAGE, JSON.stringify(tareas));
 }
 
-function mostrarTareas() {
+function mostrarTareas(tareasAMostrar) {
     listaTareas.innerHTML = '';
 
-    tareas.forEach((tarea, index) => {
-        const article = document.createElement('article');
-        article.classList.add('item-tarea');
+    tareasAMostrar.forEach((tarea) => {
+        const li = document.createElement('li');
+        li.classList.add('item-tarea');
+        li.dataset.id = tarea.id;
 
         if (tarea.completada) {
-            article.classList.add('completada');
+            li.classList.add('completada');
         }
 
-        article.innerHTML = `
-            <button class="boton-estrella" aria-label="Completar tarea">
-                ${tarea.completada ? '★' : '☆'}
-            </button>
-            <p>${tarea.texto}</p>
-            <button class="boton-eliminar" aria-label="Eliminar tarea">×</button>
-        `;
+        const botonEstrella = document.createElement('button');
+        botonEstrella.classList.add('boton-estrella');
+        botonEstrella.setAttribute('aria-label', 'Completar tarea');
+        botonEstrella.textContent = tarea.completada ? '★' : '☆';
 
-        article.dataset.index = index;
-        listaTareas.appendChild(article);
+        const parrafoTexto = document.createElement('p');
+        parrafoTexto.textContent = tarea.texto; 
+
+        const botonEliminar = document.createElement('button');
+        botonEliminar.classList.add('boton-eliminar');
+        botonEliminar.setAttribute('aria-label', 'Eliminar tarea');
+        botonEliminar.textContent = '×';
+
+        li.append(botonEstrella, parrafoTexto, botonEliminar);
+        listaTareas.append(li);
     });
 }
 
@@ -81,13 +90,14 @@ formularioTareas.addEventListener('submit', (e) => {
     mensajeEntradaError.textContent = '';
 
     const nuevaTarea = {
+            id: Date.now(),
             texto: textoTarea,
             completada: false
         };
 
         tareas.push(nuevaTarea);
         guardarTareas();
-        mostrarTareas();
+        mostrarTareas(tareas);
         entradaTarea.value = '';
         entradaTarea.focus();
         
@@ -105,18 +115,21 @@ listaTareas.addEventListener('click', (e) => {
         return;
     }
 
-    const index = item.dataset.index;
+    const idTarea = parseInt(item.dataset.id);
+    const index = tareas.findIndex(t => t.id === idTarea);
+    
+    if (index === -1) return;
 
     if (e.target.classList.contains('boton-estrella')) {
         tareas[index].completada = !tareas[index].completada;
         guardarTareas();
-        mostrarTareas();
+        mostrarTareas(tareas);
     }
 
     if (e.target.classList.contains('boton-eliminar')) {
         tareas.splice(index, 1);
         guardarTareas();
-        mostrarTareas();
+        mostrarTareas(tareas);
 
         mensajeEliminado.textContent = '🗑️ Tarea eliminada.';
         setTimeout(() => {
@@ -125,4 +138,4 @@ listaTareas.addEventListener('click', (e) => {
     }
 });
 
-mostrarTareas();
+mostrarTareas(tareas);
