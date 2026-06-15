@@ -11,28 +11,28 @@
 </head>
 
 <body>
-    <main class="app">
-        <section class="todo-card">
+    <main class="aplicacion">
+        <section class="tarjeta-tareas">
 
-            <header class="todo-header">
-                <div class="doodle doodle-left">☕</div>
+            <header class="cabecera-tareas">
+                <div class="icono icono-izquierda">☕</div>
 
-                <h1>To-Do List</h1>
+                <h1>Lista de tareas</h1>
 
-                <div class="doodle doodle-right">📓</div>
+                <div class="icono icono-derecha">📓</div>
             </header>
 
-            <form class="task-form">
+            <form class="formulario-tareas" aria-label="Formulario para agregar nuevas tareas">
                 <input 
                     type="text" 
-                    id="taskInput" 
+                    id="entradaTarea" 
                     placeholder="Escribí una tarea..."
                     aria-label="Escribir una nueva tarea"
                 >
                 <button type="submit" aria-label="Agregar tarea">Agregar</button>
             </form>
 
-            <section class="task-list"></section>
+            <section class="listaTareas" aria-label="Lista de tareas"></section>
 
         </section>
     </main>

@@ -13,9 +13,9 @@ if ('serviceWorker' in navigator) {
 }
 
 // Manejo del DOM
-const taskForm = document.querySelector('.task-form');
-const taskInput = document.getElementById('taskInput');
-const taskList = document.querySelector('.task-list');
+const taskForm = document.querySelector('.formulario-tareas');
+const taskInput = document.getElementById('entradaTarea');
+const taskList = document.querySelector('.listaTareas');
 
 let tareas = JSON.parse(localStorage.getItem('tareas')) || [
     {
@@ -37,22 +37,22 @@ function guardarTareas() {
 }
 
 function mostrarTareas() {
-    taskList.innerHTML = '';
+    listaTareas.innerHTML = '';
 
     tareas.forEach((tarea, index) => {
         const article = document.createElement('article');
-        article.classList.add('task-item');
+        article.classList.add('item-tarea');
 
         if (tarea.completada) {
-            article.classList.add('completed');
+            article.classList.add('completada');
         }
 
         article.innerHTML = `
-            <button class="star-button" aria-label="Completar tarea">
+            <button class="boton-estrella" aria-label="Completar tarea">
                 ${tarea.completada ? '★' : '☆'}
             </button>
             <p>${tarea.texto}</p>
-            <button class="delete-button" aria-label="Eliminar tarea">×</button>
+            <button class="boton-eliminar" aria-label="Eliminar tarea">×</button>
         `;
 
         article.dataset.index = index;
@@ -64,7 +64,7 @@ function mostrarTareas() {
 taskForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    const taskText = taskInput.value.trim();
+    const taskText = entradaTarea.value.trim();
 
     if (taskText !== '') {
         const nuevaTarea = {
@@ -75,15 +75,14 @@ taskForm.addEventListener('submit', (e) => {
         tareas.push(nuevaTarea);
         guardarTareas();
         mostrarTareas();
-
-        taskInput.value = '';
-        taskInput.focus();
+        entradaTarea.value = '';
+        entradaTarea.focus();
     }
 });
 
 // Para completar y eliminar
 taskList.addEventListener('click', (e) => {
-    const item = e.target.closest('.task-item');
+    const item = e.target.closest('.item-tarea');
 
     if (!item) {
         return;
@@ -91,13 +90,13 @@ taskList.addEventListener('click', (e) => {
 
     const index = item.dataset.index;
 
-    if (e.target.classList.contains('star-button')) {
+    if (e.target.classList.contains('boton-estrella')) {
         tareas[index].completada = !tareas[index].completada;
         guardarTareas();
         mostrarTareas();
     }
 
-    if (e.target.classList.contains('delete-button')) {
+    if (e.target.classList.contains('boton-eliminar')) {
         tareas.splice(index, 1);
         guardarTareas();
         mostrarTareas();

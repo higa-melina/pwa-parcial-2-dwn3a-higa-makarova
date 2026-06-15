@@ -15,12 +15,12 @@ body {
     padding: 24px;
 }
 
-.app {
+.aplicacion {
     width: 100%;
     max-width: 760px;
 }
 
-.todo-card {
+.tarjeta-tareas {
     width: 100%;
     min-height: 720px;
     background: #fbfaf7;
@@ -32,7 +32,7 @@ body {
 }
 
 /* textura simple de papel */
-.todo-card::before {
+.tarjeta-tareas::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -44,7 +44,7 @@ body {
     pointer-events: none;
 }
 
-.todo-header {
+.cabecera-tareas {
     position: relative;
     z-index: 1;
     display: flex;
@@ -60,20 +60,20 @@ h1 {
     text-align: center;
 }
 
-.doodle {
+.icono {
     font-size: 44px;
     line-height: 1;
 }
 
-.doodle-left {
+.icono-izquierda {
     transform: rotate(-8deg);
 }
 
-.doodle-right {
+.icono-derecha {
     transform: rotate(12deg);
 }
 
-.task-form {
+.formulario-tareas {
     position: relative;
     z-index: 1;
     display: flex;
@@ -81,7 +81,7 @@ h1 {
     margin-bottom: 36px;
 }
 
-.task-form input {
+.formulario-tareas input {
     flex: 1;
     border: 3px solid #111;
     border-radius: 18px;
@@ -91,11 +91,11 @@ h1 {
     outline: none;
 }
 
-.task-form input:focus {
+.formulario-tareas input:focus {
     box-shadow: 4px 4px 0 #111;
 }
 
-.task-form button {
+.formulario-tareas button {
     border: 3px solid #111;
     border-radius: 18px;
     padding: 16px 22px;
@@ -107,12 +107,12 @@ h1 {
     transition: 0.2s;
 }
 
-.task-form button:hover {
+.formulario-tareas button:hover {
     transform: translate(2px, 2px);
     box-shadow: 2px 2px 0 #111;
 }
 
-.task-list {
+.listaTareas {
     position: relative;
     z-index: 1;
     display: flex;
@@ -120,14 +120,14 @@ h1 {
     gap: 28px;
 }
 
-.task-item {
+.item-tarea {
     display: grid;
     grid-template-columns: 54px 1fr 44px;
     align-items: center;
     gap: 16px;
 }
 
-.star-button {
+.boton-estrella {
     border: none;
     background: transparent;
     font-size: 48px;
@@ -136,14 +136,14 @@ h1 {
     color: #111;
 }
 
-.task-item p {
+.item-tarea p {
     min-height: 44px;
     border-bottom: 5px solid #111;
     font-size: 24px;
     padding: 4px 8px 8px;
 }
 
-.delete-button {
+.boton-eliminar {
     width: 40px;
     height: 40px;
     border: 3px solid #111;
@@ -154,21 +154,21 @@ h1 {
     cursor: pointer;
 }
 
-.delete-button:hover,
-.star-button:hover {
+.boton-eliminar:hover,
+.boton-estrella:hover {
     transform: scale(1.08);
 }
 
-.task-item.completed p {
+.item-tarea.completada p {
     text-decoration: line-through;
     opacity: 0.55;
 }
 
-.task-item.completed .star-button {
+.item-tarea.completada .boton-estrella {
     color: #fdf03c; 
     font-weight: 700;
 }
-.task-form input:focus, .task-form button:focus {
+.formulario-tareas input:focus, .formulario-tareas button:focus {
     outline: 2px solid #111;
     box-shadow: 4px 4px 0 #111;
 }
@@ -178,7 +178,7 @@ h1 {
     to { opacity: 1; transform: translateY(0); }
 }
 
-.task-item {
+.item-tarea {
     animation: slideIn 0.3s ease-out;
 }
 
@@ -188,14 +188,14 @@ h1 {
         padding: 2px;
     }
 
-    .todo-card {
+    .tarjeta-tareas {
         min-height: auto;
         padding: 24px 16px;
         border-radius: 18px;
         box-shadow: 6px 6px 0 #111;
     }
 
-    .todo-header {
+    .cabecera-tareas {
         margin-bottom: 32px;
     }
 
