@@ -13,9 +13,9 @@ if ('serviceWorker' in navigator) {
 }
 
 // Manejo del DOM
-const taskForm = document.querySelector('.formulario-tareas');
-const taskInput = document.getElementById('entradaTarea');
-const taskList = document.querySelector('.listaTareas');
+const formularioTareas = document.querySelector('.formularioTareas');
+const entradaTarea = document.getElementById('entradaTarea');
+const listaTareas = document.querySelector('.listaTareas');
 
 let tareas = JSON.parse(localStorage.getItem('tareas')) || [
     {
@@ -61,7 +61,7 @@ function mostrarTareas() {
 }
 
 // Para agregar tareas
-formulario-tareas.addEventListener('submit', (e) => {
+formularioTareas.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const textoTarea = entradaTarea.value.trim();

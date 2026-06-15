@@ -73,7 +73,7 @@ h1 {
     transform: rotate(12deg);
 }
 
-.formulario-tareas {
+.formularioTareas {
     position: relative;
     z-index: 1;
     display: flex;
@@ -81,7 +81,7 @@ h1 {
     margin-bottom: 36px;
 }
 
-.formulario-tareas input {
+.formularioTareas input {
     flex: 1;
     border: 3px solid #111;
     border-radius: 18px;
@@ -91,11 +91,11 @@ h1 {
     outline: none;
 }
 
-.formulario-tareas input:focus {
+.formularioTareas input:focus {
     box-shadow: 4px 4px 0 #111;
 }
 
-.formulario-tareas button {
+.formularioTareas button {
     border: 3px solid #111;
     border-radius: 18px;
     padding: 16px 22px;
@@ -107,7 +107,7 @@ h1 {
     transition: 0.2s;
 }
 
-.formulario-tareas button:hover {
+.formularioTareas button:hover {
     transform: translate(2px, 2px);
     box-shadow: 2px 2px 0 #111;
 }
@@ -168,7 +168,7 @@ h1 {
     color: #fdf03c; 
     font-weight: 700;
 }
-.formulario-tareas input:focus, .formulario-tareas button:focus {
+.formularioTareas input:focus, .formularioTareas button:focus {
     outline: 2px solid #111;
     box-shadow: 4px 4px 0 #111;
 }
