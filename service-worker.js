@@ -1,7 +1,7 @@
 'use strict';
 
-const PRECACHE_NOMBRE = 'tareas-pre-cache-v2';
-const CACHE_DINAMICO_NOMBRE = 'tareas-cache-dinamico-v2';
+const PRECACHE_NOMBRE = 'tareas-pre-cache-v3';
+const CACHE_DINAMICO_NOMBRE = 'tareas-cache-dinamico-v3';
 
 const PRECACHE_URLS = [
     './',

@@ -1,6 +1,6 @@
 {
-    "name": "To-Do List App",
-    "short_name": "To-Do List",
+    "name": "Taski - Tu web app de tareas",
+    "short_name": "Taski",
     "description": "Aplicación web progresiva para gestionar tus tareas.",
     "start_url": "./index.html",
     "scope": "./",

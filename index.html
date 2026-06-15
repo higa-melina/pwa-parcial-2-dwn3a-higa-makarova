@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parcial 1 - PWA</title>
+    <title>Taski</title>
     <link href="css/estilos.css" rel="stylesheet">
     <script defer src="js/app.js"></script>
     <link rel="manifest" href="./manifest.json">
@@ -15,29 +15,51 @@
         <section class="tarjeta-tareas">
 
             <header class="cabecera-tareas">
-                <div class="icono icono-izquierda">☕</div>
-
-                <h1>Lista de tareas</h1>
-
-                <div class="icono icono-derecha">📓</div>
+                <h1>Tu lista de tareas 📝</h1>
+                <p class="contador-tareas" id="contadorTareas">0 pendientes · 0 completadas</p>
             </header>
-
-            <form class="formularioTareas" aria-label="Formulario para agregar nuevas tareas">
-                <input 
-                    type="text" 
-                    id="entradaTarea" 
-                    placeholder="Escribí una tarea..."
-                    aria-label="Escribir una nueva tarea"
-                >
-                <button type="submit" aria-label="Agregar tarea">Agregar</button>
-            </form>
 
             <p id="mensajeEntradaError" class="mensaje-error" aria-live="polite"></p>
             <p id="mensajeExito" class="mensaje-exito" aria-live="polite"></p>
-            <p id="mensajeEliminado" class="mensaje-eliminado" aria-live="polite"></p>
-            <p id="mensajeCompletado" class="mensaje-completado" aria-live="polite"></p>
 
-            <ul class="listaTareas" aria-label="Lista de tareas"></ul>
+            <form id="formularioTareas" aria-label="Formulario para agregar nuevas tareas">
+                <div class="form-fila-principal">
+                    <input
+                        type="text"
+                        id="entradaTarea"
+                        placeholder="Escribí una tarea..."
+                        aria-label="Escribir una nueva tarea"
+                    >
+                    <button type="submit" aria-label="Agregar tarea">Agregar</button>
+                </div>
+                
+                <div class="selector-prioridad">
+                    <span class="label-prioridad">Prioridad:</span>
+                    <button type="button" class="btn-prioridad" data-prioridad="alta">Alta</button>
+                    <button type="button" class="btn-prioridad" data-prioridad="media">Media</button>
+                    <button type="button" class="btn-prioridad" data-prioridad="baja">Baja</button>
+                </div>
+            </form>
+
+            <nav class="filtros-tabs" role="tablist" aria-label="Filtrar tareas por prioridad">
+                <button class="tab activo" data-filtro="todas" role="tab" aria-selected="true">Todas</button>
+                <button class="tab" data-filtro="alta" role="tab" aria-selected="false">Alta</button>
+                <button class="tab" data-filtro="media" role="tab" aria-selected="false">Media</button>
+                <button class="tab" data-filtro="baja" role="tab" aria-selected="false">Baja</button>
+            </nav>
+
+            <ul class="listaTareas" id="listaTareasPendientes" aria-label="Tareas pendientes"></ul>
+
+            <section class="seccion-completadas">
+                <div class="cabecera-completadas">
+                    <button class="btn-toggle-completadas" id="toggleCompletadas" aria-expanded="false">
+                        <span class="icono-chevron" aria-hidden="true">›</span>
+                        <span id="labelCompletadas">Completadas (0)</span>
+                    </button>
+                    <button class="btn-limpiar" id="btnLimpiarCompletadas">Eliminar todas</button>
+                </div>
+                <ul class="listaTareas" id="listaTareasCompletadas" aria-label="Tareas completadas"></ul>
+            </section>
 
         </section>
     </main>

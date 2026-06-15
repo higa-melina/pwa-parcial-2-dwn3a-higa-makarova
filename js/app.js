@@ -1,149 +1,335 @@
 'use strict';
 
-// Registro del service worker para habilitar funcionalidades offline y mejorar el rendimiento de la aplicación.
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker
-    .register('./service-worker.js')
-    .then((registro) => {
-        console.log('Service worker registrado:', registro);
-    })
-    .catch((error) => {
-        console.error(`Registro fallido: ${error}`);
-    });
+        .register('./service-worker.js')
+        .then((registro) => console.log('Service worker registrado:', registro))
+        .catch((error) => console.error(`Registro fallido: ${error}`));
 }
 
 const CLAVE_LOCALSTORAGE = 'tareas';
 
-// Manejo del DOM
-const formularioTareas = document.querySelector('.formularioTareas');
+// DOM
+const formularioTareas = document.getElementById('formularioTareas');
 const entradaTarea = document.getElementById('entradaTarea');
-const listaTareas = document.querySelector('.listaTareas');
+const listaPendientes = document.getElementById('listaTareasPendientes');
+const listaCompletadas = document.getElementById('listaTareasCompletadas');
 const mensajeEntradaError = document.getElementById('mensajeEntradaError');
 const mensajeExito = document.getElementById('mensajeExito');
-const mensajeEliminado = document.getElementById('mensajeEliminado');
-const mensajeCompletado = document.getElementById('mensajeCompletado');
+const contadorTareas = document.getElementById('contadorTareas');
+const toggleCompletadas = document.getElementById('toggleCompletadas');
+const seccionCompletadas = document.querySelector('.seccion-completadas');
+const labelCompletadas = document.getElementById('labelCompletadas');
+const btnLimpiarCompletadas = document.getElementById('btnLimpiarCompletadas');
 
-let tareas = JSON.parse(localStorage.getItem(CLAVE_LOCALSTORAGE)) || [
-    {
-        id: Date.now(),
-        texto: 'Agregá una nueva tarea',
-        completada: false
-    },
-    {
-        id: Date.now() + 1,
-        texto: 'Tocá la estrella para marcar la tarea como completada',
-        completada: false
-    },
-    {
-        id: Date.now() + 2,
-        texto: 'Tocá la × para eliminar una tarea',
-        completada: true
-    }
-];
+// Filtros y estados
+let filtroActivo = 'todas';
+let prioridadSeleccionada = null;
+
+// Tareas desde localStorage
+let tareas = (JSON.parse(localStorage.getItem(CLAVE_LOCALSTORAGE)) || [
+    { id: Date.now(),     texto: 'Tocá el cuadrado para marcarla como completada', completada: false, prioridad: 'alta' },
+    { id: Date.now() + 1, texto: 'Hacé doble clic en una tarea para editar su texto', completada: false, prioridad: 'media' },
+    { id: Date.now() + 2, texto: 'Tocá los tres puntos para elegir su prioridad', completada: false, prioridad: null },
+    { id: Date.now() + 3, texto: 'Esta tarea ya está completada', completada: true, prioridad: 'baja' }
+]).map(t => ({ ...t, prioridad: t.prioridad !== undefined ? t.prioridad : null }));
 
 function guardarTareas() {
     localStorage.setItem(CLAVE_LOCALSTORAGE, JSON.stringify(tareas));
 }
 
-function mostrarTareas(tareasAMostrar) {
-    listaTareas.innerHTML = '';
+const ORDEN_PRIORIDAD = { alta: 0, media: 1, baja: 2 };
 
-    tareasAMostrar.forEach((tarea) => {
-        const li = document.createElement('li');
-        li.classList.add('item-tarea');
-        li.dataset.id = tarea.id;
-
-        if (tarea.completada) {
-            li.classList.add('completada');
-        }
-
-        const botonEstrella = document.createElement('button');
-        botonEstrella.classList.add('boton-estrella');
-        botonEstrella.setAttribute('aria-label', 'Completar tarea');
-        botonEstrella.textContent = tarea.completada ? '★' : '☆';
-
-        const parrafoTexto = document.createElement('p');
-        parrafoTexto.textContent = tarea.texto; 
-
-        const botonEliminar = document.createElement('button');
-        botonEliminar.classList.add('boton-eliminar');
-        botonEliminar.setAttribute('aria-label', 'Eliminar tarea');
-        botonEliminar.textContent = '×';
-
-        li.append(botonEstrella, parrafoTexto, botonEliminar);
-        listaTareas.append(li);
+function ordenarTareas(arr) {
+    return [...arr].sort((a, b) => {
+        const pa = a.prioridad !== null ? (ORDEN_PRIORIDAD[a.prioridad] ?? 3) : 3;
+        const pb = b.prioridad !== null ? (ORDEN_PRIORIDAD[b.prioridad] ?? 3) : 3;
+        return pa - pb;
     });
 }
 
-// Para agregar tareas
+// Selectorde prioridad en línea (al hacer clic en el chip)
+function activarSelectorPrioridad(chip, idTarea) {
+    const selector = document.createElement('div');
+    selector.classList.add('selector-prioridad-inline');
+
+    function cerrar() {
+        document.removeEventListener('click', cerrarEnClick);
+    }
+
+    function cerrarEnClick(e) {
+        if (!selector.contains(e.target)) {
+            cerrar();
+            mostrarTareas();
+        }
+    }
+
+    const opciones = [
+        { valor: 'alta',  label: 'Alta',  clase: 'chip-alta' },
+        { valor: 'media', label: 'Media', clase: 'chip-media' },
+        { valor: 'baja',  label: 'Baja',  clase: 'chip-baja' },
+        { valor: null,    label: '×',     clase: 'chip-sin-prioridad' },
+    ];
+
+    opciones.forEach(({ valor, label, clase }) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.classList.add('btn-prioridad-inline', clase);
+        btn.textContent = label;
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cerrar();
+            const idx = tareas.findIndex(t => t.id === idTarea);
+            if (idx !== -1) {
+                tareas[idx].prioridad = valor;
+                guardarTareas();
+            }
+            mostrarTareas();
+        });
+        selector.append(btn);
+    });
+
+    chip.replaceWith(selector);
+    setTimeout(() => document.addEventListener('click', cerrarEnClick), 0);
+}
+
+// Crea el chip de prioridad 
+function crearChip(tarea) {
+    const chip = document.createElement('span');
+    chip.classList.add('chip-prioridad');
+
+    if (tarea.prioridad) {
+        chip.classList.add(`chip-${tarea.prioridad}`);
+        const nombres = { alta: 'Alta', media: 'Media', baja: 'Baja' };
+        chip.textContent = nombres[tarea.prioridad];
+    } else {
+        chip.classList.add('chip-sin-prioridad');
+        chip.textContent = '···';
+        chip.title = 'Agregar prioridad';
+    }
+
+    chip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        activarSelectorPrioridad(chip, tarea.id);
+    });
+
+    return chip;
+}
+
+function crearItemTarea(tarea) {
+    const li = document.createElement('li');
+    li.classList.add('item-tarea');
+    li.dataset.id = tarea.id;
+    if (tarea.completada) li.classList.add('completada');
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.classList.add('checkbox-tarea');
+    checkbox.checked = tarea.completada;
+    checkbox.setAttribute('aria-label', tarea.completada ? 'Marcar como pendiente' : 'Completar tarea');
+
+    const chip = crearChip(tarea);
+
+    const parrafo = document.createElement('p');
+    parrafo.classList.add('texto-tarea');
+    parrafo.textContent = tarea.texto;
+    parrafo.title = 'Doble clic para editar';
+
+    const btnEliminar = document.createElement('button');
+    btnEliminar.classList.add('boton-eliminar');
+    btnEliminar.setAttribute('aria-label', 'Eliminar tarea');
+    btnEliminar.textContent = '×';
+
+    li.append(checkbox, chip, parrafo, btnEliminar);
+    return li;
+}
+
+function mostrarTareas() {
+    const pendientes = tareas.filter(t => !t.completada);
+    const completadas = tareas.filter(t => t.completada);
+
+    const filtradas = filtroActivo === 'todas'
+        ? pendientes
+        : pendientes.filter(t => t.prioridad === filtroActivo);
+
+    listaPendientes.innerHTML = '';
+    if (filtradas.length === 0) {
+        const li = document.createElement('li');
+        li.classList.add('mensaje-vacio');
+        li.textContent = tareas.filter(t => !t.completada).length === 0
+            ? 'No tenés ninguna tarea por el momento ☕'
+            : 'No tenés tareas con esa prioridad 🔍';
+        listaPendientes.append(li);
+    } else {
+        ordenarTareas(filtradas).forEach(t => listaPendientes.append(crearItemTarea(t)));
+    }
+
+    listaCompletadas.innerHTML = '';
+    completadas.forEach(t => listaCompletadas.append(crearItemTarea(t)));
+
+    labelCompletadas.textContent = `Completadas (${completadas.length})`;
+    contadorTareas.textContent =
+        `${pendientes.length} pendiente${pendientes.length !== 1 ? 's' : ''} · ` +
+        `${completadas.length} completada${completadas.length !== 1 ? 's' : ''}`;
+}
+
+let timeoutMensaje = null;
+function mostrarMensaje(elemento, texto, duracion = 4000) {
+    elemento.textContent = texto;
+    clearTimeout(timeoutMensaje);
+    if (duracion > 0) {
+        timeoutMensaje = setTimeout(() => { elemento.textContent = ''; }, duracion);
+    }
+}
+
+
+// Agregar tarea
 formularioTareas.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const textoTarea = entradaTarea.value.trim();
-
-    if (textoTarea === '') {
-        mensajeEntradaError.textContent = '❗ Tenés que escribir una tarea antes de agregarla';
-        mensajeExito.textContent = '';
+    if (!textoTarea) {
+        mostrarMensaje(mensajeEntradaError, '❗ Escribí una tarea antes de agregarla', 0);
         entradaTarea.focus();
-        return; 
+        return;
     }
 
     mensajeEntradaError.textContent = '';
 
-    const nuevaTarea = {
-            id: Date.now(),
-            texto: textoTarea,
-            completada: false
-        };
+    tareas.push({
+        id: Date.now(),
+        texto: textoTarea,
+        completada: false,
+        prioridad: prioridadSeleccionada
+    });
 
-        tareas.push(nuevaTarea);
-        guardarTareas();
-        mostrarTareas(tareas);
-        entradaTarea.value = '';
-        entradaTarea.focus();
-        
-        mensajeExito.textContent = '✅ Tarea agregada con éxito';
-        setTimeout(() => {
-        mensajeExito.textContent = '';
-        }, 5000);
+    guardarTareas();
+    mostrarTareas();
+    entradaTarea.value = '';
+    entradaTarea.focus();
+
+    document.querySelectorAll('.btn-prioridad').forEach(b => b.classList.remove('activo'));
+    prioridadSeleccionada = null;
+
+    mostrarMensaje(mensajeExito, '✅ Tarea agregada');
 });
 
-// Para completar y eliminar
-listaTareas.addEventListener('click', (e) => {
-    const item = e.target.closest('.item-tarea');
+// Selector de prioridad del formulario
+document.querySelectorAll('.btn-prioridad').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const prioridad = btn.dataset.prioridad;
+        if (prioridadSeleccionada === prioridad) {
+            btn.classList.remove('activo');
+            prioridadSeleccionada = null;
+        } else {
+            document.querySelectorAll('.btn-prioridad').forEach(b => b.classList.remove('activo'));
+            btn.classList.add('activo');
+            prioridadSeleccionada = prioridad;
+        }
+    });
+});
 
-    if (!item) {
-        return;
+// Tabs de filtro
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => {
+            t.classList.remove('activo');
+            t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('activo');
+        tab.setAttribute('aria-selected', 'true');
+        filtroActivo = tab.dataset.filtro;
+        mostrarTareas();
+    });
+});
+
+// Edición de texto con doble clic
+function activarEdicion(parrafo, idTarea) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.classList.add('input-edicion');
+    input.value = parrafo.textContent;
+    parrafo.replaceWith(input);
+    input.focus();
+    input.select();
+
+    let guardado = false;
+
+    function guardarEdicion() {
+        if (guardado) return;
+        guardado = true;
+        const nuevoTexto = input.value.trim();
+        const idx = tareas.findIndex(t => t.id === idTarea);
+        if (idx !== -1 && nuevoTexto) {
+            tareas[idx].texto = nuevoTexto;
+            guardarTareas();
+        }
+        mostrarTareas();
     }
+
+    input.addEventListener('blur', guardarEdicion);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); guardarEdicion(); }
+        if (e.key === 'Escape') { guardado = true; mostrarTareas(); }
+    });
+}
+
+// Completar y eliminar
+function manejarClickLista(e) {
+    const item = e.target.closest('.item-tarea');
+    if (!item) return;
 
     const idTarea = parseInt(item.dataset.id);
     const index = tareas.findIndex(t => t.id === idTarea);
-    
     if (index === -1) return;
 
-    if (e.target.classList.contains('boton-estrella')) {
-        tareas[index].completada = !tareas[index].completada;
+    if (e.target.classList.contains('checkbox-tarea')) {
+        tareas[index].completada = e.target.checked;
         guardarTareas();
-        mostrarTareas(tareas);
-
-        if (tareas[index].completada === true) {
-            mensajeCompletado.textContent = '⭐ ¡Felicitaciones! Tarea completada';
-            setTimeout(() => {
-                mensajeCompletado.textContent = '';
-            }, 5000);
+        mostrarTareas();
+        if (tareas[index].completada) {
+            mostrarMensaje(mensajeExito, '⭐ ¡Tarea completada!');
         }
     }
 
     if (e.target.classList.contains('boton-eliminar')) {
         tareas.splice(index, 1);
         guardarTareas();
-        mostrarTareas(tareas);
-
-        mensajeEliminado.textContent = '🗑️ Tarea eliminada.';
-        setTimeout(() => {
-            mensajeEliminado.textContent = '';
-        }, 5000);
+        mostrarTareas();
+        mostrarMensaje(mensajeExito, '🗑️ Tarea eliminada');
     }
+}
+
+function manejarDblClickLista(e) {
+    const parrafo = e.target.closest('.texto-tarea');
+    if (!parrafo) return;
+    const item = parrafo.closest('.item-tarea');
+    if (!item) return;
+    activarEdicion(parrafo, parseInt(item.dataset.id));
+}
+
+listaPendientes.addEventListener('click', manejarClickLista);
+listaCompletadas.addEventListener('click', manejarClickLista);
+listaPendientes.addEventListener('dblclick', manejarDblClickLista);
+listaCompletadas.addEventListener('dblclick', manejarDblClickLista);
+
+// Toggle sección completadas
+toggleCompletadas.addEventListener('click', () => {
+    const abierto = seccionCompletadas.classList.toggle('abierto');
+    toggleCompletadas.setAttribute('aria-expanded', String(abierto));
 });
 
-mostrarTareas(tareas);
+// Limpiar completadas
+btnLimpiarCompletadas.addEventListener('click', () => {
+    const cantidad = tareas.filter(t => t.completada).length;
+    if (cantidad === 0) return;
+    tareas = tareas.filter(t => !t.completada);
+    guardarTareas();
+    mostrarTareas();
+    mostrarMensaje(
+        mensajeExito,
+        `🗑️ ${cantidad} tarea${cantidad !== 1 ? 's' : ''} eliminada${cantidad !== 1 ? 's' : ''}`
+    );
+});
+
+mostrarTareas();
