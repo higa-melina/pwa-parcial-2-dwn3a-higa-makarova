@@ -27,7 +27,82 @@ window.addEventListener('beforeinstallprompt', (e) => {
     });
 })
 
-const CLAVE_LOCALSTORAGE = 'tareas';
+// IndexedDB
+const DB_NOMBRE = 'tareasDB';
+const DB_VERSION = 1;
+let tareas = [];
+let db = null;
+
+const solicitudDB = indexedDB.open(DB_NOMBRE, DB_VERSION);
+
+solicitudDB.addEventListener('upgradeneeded', (e) => {
+    console.log('Actualizando o creando base de datos...');
+    console.log('- La base de datos es:', solicitudDB.result);
+    const db = solicitudDB.result;
+
+    db.createObjectStore('tareas', { 
+        keyPath: 'id' ,
+        autoIncrement: true,
+    });
+})
+
+solicitudDB.addEventListener('success', () => {
+    console.log('Base de datos abierta con éxito');
+    console.log('- La base de datos es:', solicitudDB.result);
+
+    db = solicitudDB.result;
+
+    leerTareasDeDB();
+})
+
+solicitudDB.addEventListener('error', () => {
+    console.error('No se pudo acceder a la base de datos...');
+})
+
+function leerTareasDeDB() {
+    const transaccion = db.transaction(['tareas'], 'readonly');
+    
+    const almacen = transaccion.objectStore('tareas');
+    
+    const peticion = almacen.getAll();
+
+    peticion.addEventListener('success', () => {
+        tareas = peticion.result || [];
+        
+        if (tareas.length === 0) {
+            tareas = [
+                { id: Date.now(),     texto: 'Tocá el cuadrado para marcarla como completada', completada: false, prioridad: 'alta' },
+                { id: Date.now() + 1, texto: 'Hacé doble clic en una tarea para editar su texto', completada: false, prioridad: 'media' },
+                { id: Date.now() + 2, texto: 'Tocá los tres puntos para elegir su prioridad', completada: false, prioridad: null },
+                { id: Date.now() + 3, texto: 'Esta tarea ya está completada', completada: true, prioridad: 'baja' }
+            ];
+            guardarTareas(); 
+        }
+        mostrarTareas();
+    });
+    peticion.addEventListener('error', () => {
+        console.error('Error al leer las tareas de IndexedDB');
+    });
+}
+
+function guardarTareas() {
+    const transaccion = db.transaction(['tareas'], 'readwrite');
+    const almacen = transaccion.objectStore('tareas');
+
+    almacen.clear();
+
+    tareas.forEach((tarea) => {
+        almacen.put(tarea);
+    });
+
+    transaccion.addEventListener('complete', () => {
+        console.log('¡Base de datos sincronizada!');
+    });
+
+    transaccion.addEventListener('error', () => {
+        console.error('Error al guardar las tareas');
+    });
+}
 
 // DOM
 const formularioTareas = document.getElementById('formularioTareas');
@@ -46,18 +121,6 @@ const btnLimpiarCompletadas = document.getElementById('btnLimpiarCompletadas');
 let filtroActivo = 'todas';
 let prioridadSeleccionada = null;
 
-// Tareas desde localStorage
-let tareas = (JSON.parse(localStorage.getItem(CLAVE_LOCALSTORAGE)) || [
-    { id: Date.now(),     texto: 'Tocá el cuadrado para marcarla como completada', completada: false, prioridad: 'alta' },
-    { id: Date.now() + 1, texto: 'Hacé doble clic en una tarea para editar su texto', completada: false, prioridad: 'media' },
-    { id: Date.now() + 2, texto: 'Tocá los tres puntos para elegir su prioridad', completada: false, prioridad: null },
-    { id: Date.now() + 3, texto: 'Esta tarea ya está completada', completada: true, prioridad: 'baja' }
-]).map(t => ({ ...t, prioridad: t.prioridad !== undefined ? t.prioridad : null }));
-
-function guardarTareas() {
-    localStorage.setItem(CLAVE_LOCALSTORAGE, JSON.stringify(tareas));
-}
-
 const ORDEN_PRIORIDAD = { alta: 0, media: 1, baja: 2 };
 
 function ordenarTareas(arr) {
@@ -68,7 +131,7 @@ function ordenarTareas(arr) {
     });
 }
 
-// Selectorde prioridad en línea (al hacer clic en el chip)
+// Selector de prioridad en línea (al hacer clic en el chip)
 function activarSelectorPrioridad(chip, idTarea) {
     const selector = document.createElement('div');
     selector.classList.add('selector-prioridad-inline');
@@ -351,5 +414,3 @@ btnLimpiarCompletadas.addEventListener('click', () => {
         `🗑️ ${cantidad} tarea${cantidad !== 1 ? 's' : ''} eliminada${cantidad !== 1 ? 's' : ''}`
     );
 });
-
-mostrarTareas();
