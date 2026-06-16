@@ -7,6 +7,26 @@ if ('serviceWorker' in navigator) {
         .catch((error) => console.error(`Registro fallido: ${error}`));
 }
 
+window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('La aplicación es instalable.');
+    
+    const $boton = document.querySelector('#instalador');
+    $boton.hidden = false;
+    e.preventDefault();
+
+    $boton.addEventListener('click', () => {
+        e.prompt()
+        .then((respuesta) => {
+            if (respuesta.outcome === 'accepted') {
+                console.log('El usuario aceptó la instalación.');
+            } else {
+                console.log('El usuario rechazó la instalación.');
+            }
+        })
+        $boton.remove();
+    });
+})
+
 const CLAVE_LOCALSTORAGE = 'tareas';
 
 // DOM
