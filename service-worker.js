@@ -64,26 +64,76 @@ self.addEventListener('fetch', (evento) => {
     );
 });
 
-self.addEventListener('push', (evento) => {
-  console.log('💬 Mostramos una notificación al usuario...');
-  console.log('ℹ️✍️ Información del evento:', evento.data.text());
-  console.log('ℹ️📦️ Información del evento:', evento.data.json());
+self.addEventListener('push', (evento) => {    
+    evento.waitUntil(
+        new Promise((resolver) => {
+            const solicitudDB = indexedDB.open('tareasDB', 1);
 
-  const titulo = "Título de la notificación";
-  const opciones = {
-    body: "Esto es el cuerpo de la notificación.",
-    icon: "https://placehold.co/192",
-    data: {
-      id: 1,
-      info: "Esto es información para nosotros."
-    },
-    actions: [
-      {
-        action: "actualizar", // ID de la acción
-        title: "Actualizar",
-      }
-    ]
-  }
+            solicitudDB.onsuccess = function () {
+                const db = solicitudDB.result;
 
-  evento.waitUntil(self.registration.showNotification(titulo, opciones))
-})
+                try {
+                    const transaccion = db.transaction(['tareas'], 'readonly');
+                    const almacen = transaccion.objectStore('tareas');
+                    const peticion = almacen.getAll();
+
+                    peticion.onsuccess = function () {
+                        const tareas = peticion.result || [];
+
+                        const altaPrioridad = tareas.filter((tarea) => {
+                            return !tarea.completada && tarea.prioridad === 'alta';
+                        });
+
+                        let titulo = 'Taski';
+                        let mensaje = 'Todo al día: no tenés tareas importantes sin completar.';
+
+                        if (altaPrioridad.length > 0) {
+                            titulo = 'Tarea importante pendiente';
+                            mensaje = `Tenés ${altaPrioridad.length} tarea${altaPrioridad.length !== 1 ? 's' : ''} de prioridad alta sin completar.`;
+                        }
+
+                        const opciones = {
+                            body: mensaje,
+                            icon: './img/icon-192x192.png',
+                            data: {
+                                url: './index.html',
+                                info: 'Recordatorio de tareas importantes'
+                            },
+                            actions: [
+                                {
+                                    action: 'abrir',
+                                    title: 'Abrir lista'
+                                }
+                            ]
+                        };
+
+                        self.registration.showNotification(titulo, opciones)
+                            .then(resolver);
+                    };
+
+                    peticion.onerror = function () {
+                        console.error('No se pudieron leer las tareas.');
+                        resolver();
+                    };
+
+                } catch (error) {
+                    console.error('No se pudo leer la base de datos:', error);
+                    resolver();
+                }
+            };
+
+            solicitudDB.onerror = function () {
+                console.error('No se pudo abrir la base de datos.');
+                resolver();
+            };
+        })
+    );
+});
+
+self.addEventListener('notificationclick', (evento) => {
+    evento.notification.close();
+
+    evento.waitUntil(
+        clients.openWindow('./index.html')
+);
+});
