@@ -64,7 +64,7 @@ self.addEventListener('fetch', (evento) => {
     );
 });
 
-self.addEventListener('push', (evento) => {    
+self.addEventListener('push', (evento) => {
     evento.waitUntil(
         new Promise((resolver) => {
             const solicitudDB = indexedDB.open('tareasDB', 1);
@@ -135,5 +135,5 @@ self.addEventListener('notificationclick', (evento) => {
 
     evento.waitUntil(
         clients.openWindow('./index.html')
-);
+    );
 });

@@ -9,20 +9,20 @@ if ('serviceWorker' in navigator) {
 
 window.addEventListener('beforeinstallprompt', (e) => {
     console.log('La aplicación es instalable.');
-    
+
     const $boton = document.querySelector('#instalador');
     $boton.hidden = false;
     e.preventDefault();
 
     $boton.addEventListener('click', () => {
         e.prompt()
-        .then((respuesta) => {
-            if (respuesta.outcome === 'accepted') {
-                console.log('El usuario aceptó la instalación.');
-            } else {
-                console.log('El usuario rechazó la instalación.');
-            }
-        })
+            .then((respuesta) => {
+                if (respuesta.outcome === 'accepted') {
+                    console.log('El usuario aceptó la instalación.');
+                } else {
+                    console.log('El usuario rechazó la instalación.');
+                }
+            })
         $boton.remove();
     });
 })
@@ -40,8 +40,8 @@ solicitudDB.addEventListener('upgradeneeded', (e) => {
     console.log('- La base de datos es:', solicitudDB.result);
     const db = solicitudDB.result;
 
-    db.createObjectStore('tareas', { 
-        keyPath: 'id' ,
+    db.createObjectStore('tareas', {
+        keyPath: 'id',
         autoIncrement: true,
     });
 })
@@ -61,22 +61,22 @@ solicitudDB.addEventListener('error', () => {
 
 function leerTareasDeDB() {
     const transaccion = db.transaction(['tareas'], 'readonly');
-    
+
     const almacen = transaccion.objectStore('tareas');
-    
+
     const peticion = almacen.getAll();
 
     peticion.addEventListener('success', () => {
         tareas = peticion.result || [];
-        
+
         if (tareas.length === 0) {
             tareas = [
-                { id: Date.now(),     texto: 'Tocá el cuadrado para marcarla como completada', completada: false, prioridad: 'alta' },
+                { id: Date.now(), texto: 'Tocá el cuadrado para marcarla como completada', completada: false, prioridad: 'alta' },
                 { id: Date.now() + 1, texto: 'Hacé doble clic en una tarea para editar su texto', completada: false, prioridad: 'media' },
                 { id: Date.now() + 2, texto: 'Tocá los tres puntos para elegir su prioridad', completada: false, prioridad: null },
                 { id: Date.now() + 3, texto: 'Esta tarea ya está completada', completada: true, prioridad: 'baja' }
             ];
-            guardarTareas(); 
+            guardarTareas();
         }
         mostrarTareas();
     });
@@ -116,6 +116,7 @@ const toggleCompletadas = document.getElementById('toggleCompletadas');
 const seccionCompletadas = document.querySelector('.seccion-completadas');
 const labelCompletadas = document.getElementById('labelCompletadas');
 const btnLimpiarCompletadas = document.getElementById('btnLimpiarCompletadas');
+const botonCompartirLista = document.querySelector('#compartir-lista');
 
 // Filtros y estados
 let filtroActivo = 'todas';
@@ -148,10 +149,10 @@ function activarSelectorPrioridad(chip, idTarea) {
     }
 
     const opciones = [
-        { valor: 'alta',  label: 'Alta',  clase: 'chip-alta' },
+        { valor: 'alta', label: 'Alta', clase: 'chip-alta' },
         { valor: 'media', label: 'Media', clase: 'chip-media' },
-        { valor: 'baja',  label: 'Baja',  clase: 'chip-baja' },
-        { valor: null,    label: '×',     clase: 'chip-sin-prioridad' },
+        { valor: 'baja', label: 'Baja', clase: 'chip-baja' },
+        { valor: null, label: '×', clase: 'chip-sin-prioridad' },
     ];
 
     opciones.forEach(({ valor, label, clase }) => {
@@ -176,7 +177,7 @@ function activarSelectorPrioridad(chip, idTarea) {
     setTimeout(() => document.addEventListener('click', cerrarEnClick), 0);
 }
 
-// Crea el chip de prioridad 
+// Crea el chip de prioridad
 function crearChip(tarea) {
     const chip = document.createElement('span');
     chip.classList.add('chip-prioridad');
@@ -264,7 +265,6 @@ function mostrarMensaje(elemento, texto, duracion = 4000) {
         timeoutMensaje = setTimeout(() => { elemento.textContent = ''; }, duracion);
     }
 }
-
 
 // Agregar tarea
 formularioTareas.addEventListener('submit', (e) => {
@@ -415,6 +415,7 @@ btnLimpiarCompletadas.addEventListener('click', () => {
     );
 });
 
+// Notificaciones
 const $botonNotificaciones = document.querySelector('#habilitar-notificaciones');
 
 if ($botonNotificaciones) {
@@ -444,4 +445,40 @@ function solicitarPermisoNotificaciones() {
             mostrarMensaje(mensajeEntradaError, 'No se activaron los recordatorios.', 3000);
         }
     });
+}
+
+// Compartir lista
+botonCompartirLista.addEventListener('click', compartirLista);
+
+function compartirLista() {
+    let mensaje = '';
+
+    if (tareas.length === 0) {
+        mensaje += 'Todavía no tengo tareas cargadas.';
+    } else {
+        for (const tarea of tareas) {
+            const estado = tarea.completada ? 'Completada' : 'Pendiente';
+            const prioridad = tarea.prioridad ? tarea.prioridad : 'sin prioridad';
+
+            mensaje += `- [${estado}] ${tarea.texto} — Prioridad: ${prioridad}\n`;
+        }
+    }
+
+    if (navigator.share) {
+
+        const datosCompartir = {
+            title: 'Mi lista de tareas en Taski',
+            text: mensaje
+        };
+
+        navigator.share(datosCompartir)
+            .then(() => {
+                mostrarMensaje(mensajeExito, 'Lista compartida.');
+            })
+            .catch(() => {
+                mostrarMensaje(mensajeEntradaError, 'No se pudo compartir la lista.', 3000);
+            });
+    } else {
+        mostrarMensaje(mensajeEntradaError, 'Tu navegador no permite compartir contenido.', 3000);
+    }
 }
