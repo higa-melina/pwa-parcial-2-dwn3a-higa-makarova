@@ -63,3 +63,27 @@ self.addEventListener('fetch', (evento) => {
             })
     );
 });
+
+self.addEventListener('push', (evento) => {
+  console.log('💬 Mostramos una notificación al usuario...');
+  console.log('ℹ️✍️ Información del evento:', evento.data.text());
+  console.log('ℹ️📦️ Información del evento:', evento.data.json());
+
+  const titulo = "Título de la notificación";
+  const opciones = {
+    body: "Esto es el cuerpo de la notificación.",
+    icon: "https://placehold.co/192",
+    data: {
+      id: 1,
+      info: "Esto es información para nosotros."
+    },
+    actions: [
+      {
+        action: "actualizar", // ID de la acción
+        title: "Actualizar",
+      }
+    ]
+  }
+
+  evento.waitUntil(self.registration.showNotification(titulo, opciones))
+})

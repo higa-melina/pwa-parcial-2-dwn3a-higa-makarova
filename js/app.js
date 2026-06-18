@@ -414,3 +414,50 @@ btnLimpiarCompletadas.addEventListener('click', () => {
         `🗑️ ${cantidad} tarea${cantidad !== 1 ? 's' : ''} eliminada${cantidad !== 1 ? 's' : ''}`
     );
 });
+
+const $botonNotificaciones = document.querySelector('#habilitar-notificaciones');
+
+if ($botonNotificaciones) {
+    $botonNotificaciones.addEventListener('click', solicitarPermisoNotificaciones);
+}
+$boton.addEventListener('click', solicitarPermisoNotificaciones);
+
+function solicitarPermisoNotificaciones() {
+  // NOTA: Verificar el sw para notificaciones push.
+
+  // Comprobamos si las notificaciones son soportadas por el navegador
+  if ('Notification' in window) {
+    console.log('👍️ Notificaciones soportadas');
+  } else {
+    console.log('👎️ Notificaciones no soportadas');
+  }
+
+  // Comprobamos el estado actual del permiso (Concedido o denegado):
+  if (Notification.permission === 'granted') {
+    console.log('👍️ Podemos enviar notificaciones.');
+    return;
+  }else if (Notification.permission === 'denied') {
+    console.log('👎️ No podemos enviar notificaciones.');
+    return;
+  } else {
+    console.log('❓️ El usuario todavía no decidió, por lo que le podemos mostrar la solicitud de permiso.');
+  }
+
+  // Si el estado es 'default', solicitamos el permiso:
+  Notification.requestPermission().then(permiso => {
+    if (permiso === 'granted') {
+      console.log('👍️ Permiso de notificaciones concedido con éxito.');
+      // Aquí podemos:
+      // - Mostrar una notificación de bienvenida.
+      // - Si es para Push Notifications, ahora es el momento de suscribir al usuario al servicio Push.
+    } else if (permiso === 'denied') {
+      console.warn('👎️ El usuario denegó el permiso de notificaciones.');
+    } else {
+      console.log('❓️ El usuario cerró la solicitud de permiso sin tomar una decisión.');
+    }
+  })
+
+
+  // IMPORTANTE: Esta llamada debe ser en respuesta a una interacción del usuario (clic en un botón, etc.)
+  // Si la llamas al cargar la página, la mayoría de los navegadores la bloquearán
+};
